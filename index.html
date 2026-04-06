@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inkfy - Seu Universo de Histórias</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&family=Inter:wght@400;600;700;900&family=Lora:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Roboto:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Oswald:wght@400;700&family=Dancing+Script:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+            transition: background-color 0.5s ease;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        #celestial-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none; overflow: hidden;
+        }
+
+        .celestial-shape {
+            position: absolute;
+            fill: #DAA520;
+            opacity: 0.15;
+            transition: opacity 0.5s;
+        }
+
+        .celestial-shape.moon { fill: #818cf8; opacity: 0.2; }
+
+        .font-lora { font-family: 'Lora', serif; }
+        .font-logo { font-family: 'Gloria Hallelujah', cursive; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 20px; }
+
+        .title-contrast { color: #ffffff !important; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
+        .glass-ui {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        input, textarea, select {
+            background-color: rgba(30, 41, 59, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #f8fafc !important;
+        }
+
+        #writing-content-editor {
+            min-height: 500px; outline: none; padding: 2.5rem; line-height: 1.8;
+            background: rgba(15, 23, 42, 0.85) !important; color: #e2e8f0;
+        }
+        
+        .line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
+        .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* Estilos de Arraste */
+        .dragging { opacity: 0.4; transform: scale(0.98); }
+        .drag-over { border: 2px dashed #6366f1 !important; background: rgba(99, 102, 241, 0.1) !important; }
+    </style>
+</head>
+<body>
+
+    <div id="celestial-bg"></div>
+
+    <header class="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 transition-all">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <h1 id="logo" class="text-3xl font-bold text-indigo-400 font-logo cursor-pointer transition-all hover:opacity-80">Inkfy</h1>
+                <div class="relative hidden md:block">
+                    <input type="text" id="search-input" placeholder="Pesquisar universos..." class="w-64 lg:w-96 rounded-full py-2 px-5 text-sm outline-none transition-all">
+                    <i class="ph-bold ph-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <div class="relative">
+                    <button id="studio-button" class="flex items-center gap-2 bg-indigo-600 text-white font-bold py-2 px-5 rounded-full hover:bg-indigo-700 transition-all shadow-md text-sm">
+                        <i class="ph-fill ph-pencil-simple"></i>
+                        <span class="hidden sm:inline uppercase tracking-widest text-xs">Ateliê</span>
+                    </button>
+                    <div id="studio-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-slate-900 rounded-2xl shadow-2xl z-50 border border-slate-800 p-1">
+                        <a href="#" onclick="event.preventDefault(); showStoryDetailsView();" class="flex items-center gap-3 p-3 text-sm font-bold hover:bg-slate-800 rounded-xl transition">
+                            <i class="ph-fill ph-plus-circle text-indigo-400"></i> Nova História
+                        </a>
+                        <a href="#" onclick="event.preventDefault(); showStudioView();" class="flex items-center gap-3 p-3 text-sm font-bold hover:bg-slate-800 rounded-xl transition">
+                             <i class="ph-fill ph-books text-indigo-400"></i> Minhas Histórias
+                        </a>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <button id="discover-button" class="flex items-center gap-2 bg-slate-800 text-slate-200 font-bold py-2 px-4 rounded-full hover:bg-slate-700 transition text-sm">
+                        <i class="ph-bold ph-compass"></i>
+                        <span class="hidden sm:inline uppercase tracking-widest text-xs">Descobrir</span>
+                    </button>
+                    <div id="discover-dropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 rounded-2xl shadow-xl z-50 border border-slate-800 p-4"></div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-6">
+        <div id="home-view">
+             <div class="text-center mb-10 py-6">
+                <h2 class="text-4xl font-black font-lora tracking-tight title-contrast">Histórias em Destaque</h2>
+                <p class="text-slate-400 mt-2 font-medium uppercase tracking-widest text-xs">As constelações mais brilhantes do universo Inkfy.</p>
+            </div>
+            <div id="recommended-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 mb-16"></div>
+
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-black font-lora tracking-tight title-contrast">Especialmente para você</h2>
+                <p class="text-slate-400 mt-1 font-medium text-xs uppercase tracking-widest">Histórias que orbitam o seu gosto único.</p>
+            </div>
+            <div id="best-choices-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"></div>
+        </div>
+
+        <div id="search-view" class="hidden">
+            <button onclick="showHomeView()" class="mb-6 flex items-center gap-2 text-sm text-indigo-400 font-bold hover:underline cursor-pointer">
+                 <i class="ph-bold ph-arrow-left"></i> Voltar ao Início
+            </button>
+            <div id="stories-list" class="space-y-6"></div>
+        </div>
+
+        <div id="story-index-view" class="hidden">
+            <button onclick="showHomeView()" class="mb-8 flex items-center gap-2 text-sm text-indigo-400 font-bold hover:underline cursor-pointer">
+                <i class="ph-bold ph-arrow-left"></i> Voltar à Home
+            </button>
+            <div class="max-w-4xl mx-auto pb-20">
+                <div class="glass-ui rounded-[2.5rem] p-8 md:p-12 mb-10 flex flex-col md:flex-row gap-10 items-center md:items-start border border-slate-800 shadow-2xl">
+                    <img id="index-story-cover" src="" class="w-48 h-72 object-cover rounded-2xl shadow-2xl border border-slate-700">
+                    <div class="flex-1 text-center md:text-left">
+                        <h2 id="index-story-title" class="text-4xl md:text-5xl font-black font-lora mb-4 title-contrast"></h2>
+                        <p id="index-story-author" class="text-indigo-400 font-black uppercase text-xs tracking-widest mb-6"></p>
+                        <p id="index-story-synopsis" class="text-slate-400 leading-relaxed mb-8 italic"></p>
+                        <div class="flex flex-wrap justify-center md:justify-start gap-6 text-xs font-black uppercase text-slate-500">
+                            <span id="index-story-reads"></span>
+                            <span id="index-story-likes"></span>
+                            <span id="index-story-chapters"></span>
+                        </div>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-black mb-6 uppercase tracking-widest title-contrast">Capítulos</h3>
+                <div id="index-chapters-list" class="space-y-4"></div>
+            </div>
+        </div>
+
+        <div id="reader-view" class="hidden">
+            <div class="max-w-4xl mx-auto">
+                <button id="back-to-index-btn" class="mb-8 flex items-center gap-2 bg-slate-800 py-2.5 px-6 rounded-full shadow-md font-bold text-sm hover:-translate-y-0.5 transition cursor-pointer text-indigo-400 border border-slate-700">
+                    <i class="ph-bold ph-arrow-left"></i> Índice
+                </button>
+                <div id="reader-container"></div>
+            </div>
+        </div>
+
+        <div id="studio-view" class="hidden">
+            <button onclick="showHomeView()" class="mb-6 flex items-center gap-2 text-sm text-indigo-400 font-bold hover:underline cursor-pointer">
+                 <i class="ph-bold ph-arrow-left"></i> Voltar ao Início
+            </button>
+            <h2 class="text-4xl font-black font-lora mb-10 title-contrast uppercase tracking-tighter">Suas Obras</h2>
+            <div id="my-stories-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"></div>
+        </div>
+
+        <div id="editor-view" class="hidden">
+            <button onclick="showStudioView()" class="mb-8 text-sm font-bold text-indigo-400 hover:underline flex items-center gap-2 cursor-pointer"><i class="ph-bold ph-arrow-left"></i> Voltar ao Ateliê</button>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <aside class="lg:col-span-1 text-center">
+                    <div class="relative group">
+                        <img id="edit-cover-preview" src="" class="w-64 mx-auto rounded-2xl shadow-lg mb-6 border-4 border-slate-800">
+                        <div class="absolute bottom-10 left-1/2 translate-x-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                            <button onclick="editCurrentStoryDetails()" class="bg-white text-indigo-900 font-bold px-4 py-2 rounded-full shadow-2xl text-xs hover:scale-110 transition-transform"><i class="ph-bold ph-pencil-simple"></i></button>
+                            <button id="delete-story-action-btn" class="bg-red-600 text-white font-bold px-4 py-2 rounded-full shadow-2xl text-xs hover:scale-110 transition-transform"><i class="ph-bold ph-trash"></i></button>
+                        </div>
+                    </div>
+                    <h3 id="edit-story-title" class="text-3xl font-black font-lora mb-2 title-contrast"></h3>
+                    <div class="flex justify-center gap-4 text-[10px] font-black uppercase text-slate-500 mb-6">
+                        <span id="edit-story-views"></span>
+                        <span id="edit-story-likes"></span>
+                        <span id="edit-story-comments-stat"></span>
+                    </div>
+                </aside>
+                <div class="lg:col-span-2 glass-ui p-8 rounded-3xl border border-slate-800 shadow-xl">
+                    <div class="flex justify-between items-center mb-8">
+                        <h3 class="text-xl font-bold title-contrast uppercase tracking-tighter">Gerenciar Capítulos</h3>
+                        <button onclick="openChapterWriting()" class="bg-indigo-600 text-white px-6 py-2 rounded-full text-xs font-bold hover:bg-indigo-700 shadow-md">+ Novo</button>
+                    </div>
+                    <ul id="chapters-list-editor" class="space-y-4"></ul>
+                    <p class="text-[9px] text-slate-500 uppercase mt-6 text-center font-bold tracking-widest">Dica: Arraste os <i class="ph ph-dots-six-vertical"></i> para reordenar</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="chapter-writing-view" class="hidden">
+            <div class="max-w-5xl mx-auto pb-12">
+                <div class="flex justify-between items-center mb-6">
+                    <button onclick="cancelWriting()" class="font-bold text-sm text-slate-400 hover:text-red-400 transition cursor-pointer uppercase tracking-widest">Sair</button>
+                    <div class="flex gap-4">
+                         <div class="flex items-center gap-2 bg-slate-800 px-4 rounded-full border border-slate-700">
+                            <span class="text-xs font-bold text-slate-500 uppercase">Estado:</span>
+                            <select id="writing-chapter-status" class="bg-transparent border-none text-xs font-bold outline-none cursor-pointer p-2"><option value="published">Publicado</option><option value="draft">Rascunho</option></select>
+                        </div>
+                        <button id="save-chapter-btn" class="bg-indigo-600 text-white px-10 py-3 rounded-full font-bold shadow-lg uppercase text-xs hover:bg-indigo-700 transition-all">Salvar</button>
+                    </div>
+                </div>
+                <div class="glass-ui rounded-3xl shadow-2xl overflow-hidden border border-slate-800">
+                    <div class="p-4 bg-slate-900/80 border-b border-slate-800 flex flex-wrap items-center gap-3 justify-center">
+                        <select id="font-family-selector" onchange="execCommandWithVal('fontName', this.value)" class="bg-slate-800 border border-slate-700 text-xs font-bold p-2 rounded-lg outline-none text-slate-200">
+                            <optgroup label="Padrão">
+                                <option value="Arial">Arial</option>
+                                <option value="Times New Roman">Times New Roman</option>
+                                <option value="Inter">Inter (Interface)</option>
+                            </optgroup>
+                            <optgroup label="Serifada">
+                                <option value="Lora">Lora (Livro)</option>
+                                <option value="Playfair Display">Playfair Display</option>
+                                <option value="Merriweather">Merriweather</option>
+                                <option value="Cinzel">Cinzel</option>
+                            </optgroup>
+                            <optgroup label="Sem Serifa">
+                                <option value="Roboto">Roboto</option>
+                                <option value="Montserrat">Montserrat</option>
+                                <option value="Open Sans">Open Sans</option>
+                                <option value="Josefin Sans">Josefin Sans</option>
+                            </optgroup>
+                            <optgroup label="Artística / Manuscrita">
+                                <option value="Gloria Hallelujah">Gloria Hallelujah</option>
+                                <option value="Dancing Script">Dancing Script</option>
+                                <option value="Pacifico">Pacifico</option>
+                                <option value="Caveat">Caveat</option>
+                                <option value="Special Elite">Typewriter</option>
+                                <option value="Amatic SC">Amatic SC</option>
+                            </optgroup>
+                            <optgroup label="Display / Futurista">
+                                <option value="Orbitron">Orbitron</option>
+                                <option value="Righteous">Righteous</option>
+                                <option value="Oswald">Oswald</option>
+                            </optgroup>
+                        </select>
+                        <div class="h-6 w-px bg-slate-700 mx-1"></div>
+                        <button onclick="execCommand('bold')" class="p-2 hover:bg-slate-700 rounded-lg"><i class="ph-bold ph-text-bolder"></i></button>
+                        <button onclick="execCommand('italic')" class="p-2 hover:bg-slate-700 rounded-lg"><i class="ph-bold ph-text-italic"></i></button>
+                        <div class="h-6 w-px bg-slate-700 mx-1"></div>
+                        <button onclick="execCommand('justifyLeft')" class="p-2 hover:bg-slate-700 rounded-lg transition" title="Esquerda"><i class="ph-bold ph-text-align-left"></i></button>
+                        <button onclick="execCommand('justifyCenter')" class="p-2 hover:bg-slate-700 rounded-lg transition" title="Centro"><i class="ph-bold ph-text-align-center"></i></button>
+                        <button onclick="execCommand('justifyRight')" class="p-2 hover:bg-slate-700 rounded-lg transition" title="Direita"><i class="ph-bold ph-text-align-right"></i></button>
+                        <button onclick="execCommand('justifyFull')" class="p-2 hover:bg-slate-700 rounded-lg transition" title="Justificado"><i class="ph-bold ph-text-align-justify"></i></button>
+                    </div>
+                    <div class="p-10">
+                        <input type="text" id="writing-chapter-title" placeholder="Nome do capítulo..." class="w-full bg-transparent border-none text-4xl font-bold font-lora outline-none mb-8 placeholder:text-slate-700">
+                        <div id="writing-content-editor" contenteditable="true" spellcheck="true" class="font-lora text-lg leading-relaxed min-h-[500px]"></div>
+                    </div>
+                    <div class="p-6 bg-slate-900/50 border-t border-slate-800 flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
+                        <div>PALAVRAS: <span id="writing-word-count" class="text-indigo-400 font-bold">0</span></div>
+                        <div>PÁGINAS: <span id="writing-page-count" class="text-indigo-400 font-bold">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="story-details-view" class="hidden">
+            <div class="max-w-5xl mx-auto">
+                <button onclick="showHomeView()" class="mb-6 flex items-center gap-2 text-sm text-slate-400 hover:text-red-400 font-bold transition cursor-pointer">
+                    <i class="ph-bold ph-x-circle"></i> Cancelar
+                </button>
+                <div class="glass-ui rounded-3xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-3 border border-slate-800">
+                    <div class="p-8 bg-slate-900/50 border-r border-slate-800 flex flex-col items-center justify-center">
+                        <div id="cover-upload-zone" class="w-full aspect-[2/3] max-w-[280px] bg-slate-800 rounded-2xl border-2 border-dashed border-slate-700 flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500 transition-all relative overflow-hidden group shadow-sm">
+                            <img id="cover-preview-img" src="" class="absolute inset-0 w-full h-full object-cover hidden">
+                            <div id="cover-placeholder" class="text-center p-4 text-slate-500 group-hover:text-indigo-400">
+                                <i class="ph ph-image-square text-5xl mb-2"></i>
+                                <p class="text-xs font-bold uppercase">Mudar Capa</p>
+                            </div>
+                        </div>
+                        <input type="file" id="cover-input" class="hidden" accept="image/*">
+                    </div>
+                    <div class="md:col-span-2 p-10 space-y-6">
+                        <h2 id="story-details-title" class="text-3xl font-black font-lora title-contrast">Detalhes da História</h2>
+                        <div class="space-y-4">
+                            <input type="hidden" id="editing-story-id" value="">
+                            <div><label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Título</label><input type="text" id="new-story-title" class="w-full rounded-xl p-4 font-bold"></div>
+                            <div><label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Sinopse</label><textarea id="new-story-synopsis" rows="4" class="w-full rounded-xl p-4 resize-none"></textarea></div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div><label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Personagens</label><input type="text" id="new-story-chars" class="w-full rounded-xl p-4"></div>
+                                <div><label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Categoria (Estilo)</label><select id="new-story-category" class="w-full rounded-xl p-4 font-bold"></select></div>
+                            </div>
+                        </div>
+                        <button id="save-new-story-btn" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl hover:bg-indigo-700 shadow-lg transition-all active:scale-[0.98]">Salvar Alterações</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="comment-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6">
+        <div class="glass-ui w-full max-w-lg rounded-[2.5rem] p-8 comment-bubble border border-slate-700 shadow-2xl">
+            <h4 class="text-2xl font-black mb-6 uppercase tracking-widest title-contrast">Ecoar Opinião</h4>
+            <textarea id="comment-input-area" rows="4" class="w-full rounded-2xl p-4 mb-6" placeholder="Escreva o que achou..."></textarea>
+            <div class="flex gap-4 justify-end"><button onclick="closeCommentModal()" class="font-bold text-slate-400 uppercase text-xs px-6 py-3 hover:text-white transition">Fechar</button><button onclick="submitComment()" class="bg-indigo-600 text-white font-black uppercase text-xs px-8 py-3 rounded-full hover:bg-indigo-700 transition">Publicar</button></div>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-black/80 backdrop-blur-sm p-6">
+        <div class="glass-ui w-full max-w-sm rounded-[2rem] p-8 comment-bubble border border-slate-700 text-center shadow-2xl">
+            <h4 id="confirm-title" class="text-xl font-black mb-4 title-contrast uppercase">Tens a certeza?</h4>
+            <p id="confirm-message" class="text-slate-400 text-sm mb-8"></p>
+            <div class="flex gap-4 justify-center"><button onclick="closeConfirmModal()" class="font-bold text-slate-500 uppercase text-xs px-6 py-3 hover:text-white transition">Voltar</button><button id="confirm-action-btn" class="bg-red-600 text-white font-black uppercase text-xs px-8 py-3 rounded-full hover:bg-red-700 shadow-lg">Confirmar</button></div>
+        </div>
+    </div>
+
+    <script>
+        let fanfics = JSON.parse(localStorage.getItem('inkfy_stories')) || [
+            {
+                id: 1, title: "O Eco do Silêncio", author: "Inkfy Author", cover: "https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=800&auto=format&fit=crop",
+                synopsis: "Dois inimigos mortais precisam se unir para desvendar uma verdade milenar.", category: "Mistério",
+                mainCharacters: ["Elara", "Kael"], status: "Em andamento", likes: 125, reads: 15200, createdAt: "2025-09-27T10:00:00Z",
+                chapters: [{ id: 101, title: "Prólogo: A Névoa", likes: 55, comments: [], content: "<p>O silêncio reinava...</p>", isDraft: false }]
+            }
+        ];
+
+        const discoverTags = ["Aventura", "Conto", "Fanfic", "Fantasia", "Ficção científica", "Horror", "Humor", "Mistério", "Romance"].sort();
+        let storyBeingEdited = null, chapterIndexBeingWritten = null, currentStory = null, currentChapterIndex = 0, currentSearchQuery = '';
+
+        // --- DRAG AND DROP STATE ---
+        let dragSourceIndex = null;
+
+        function generateCelestialBackground() {
+            const bg = document.getElementById('celestial-bg'); bg.innerHTML = '';
+            const cols = 5, rows = 5;
+            for(let r = 0; r < rows; r++) {
+                for(let c = 0; c < cols; c++) {
+                    const shape = document.createElement('div'); const rand = Math.random();
+                    const type = rand > 0.75 ? 'moon' : (rand > 0.4 ? 'sun' : 'star');
+                    shape.className = `celestial-shape ${type === 'moon' ? 'moon' : ''}`;
+                    const size = Math.floor(Math.random() * 50) + 30;
+                    const x = (c * (100 / cols)) + (Math.random() * 10); const y = (r * (100 / rows)) + (Math.random() * 10);
+                    let svg = type === 'sun' ? `<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>` : (type === 'moon' ? `<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>` : `<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>`);
+                    shape.innerHTML = `<svg fill="currentColor" width="${size}" height="${size}" viewBox="0 0 24 24">${svg}</svg>`;
+                    shape.style.left = x + '%'; shape.style.top = y + '%'; shape.style.transform = `rotate(${Math.random() * 60}deg)`; bg.appendChild(shape);
+                }
+            }
+        }
+
+        window.showView = function(id) {
+            ['home-view', 'search-view', 'reader-view', 'studio-view', 'editor-view', 'story-details-view', 'story-index-view', 'chapter-writing-view'].forEach(v => document.getElementById(v)?.classList.add('hidden'));
+            document.getElementById(id)?.classList.remove('hidden'); window.scrollTo(0, 0);
+        };
+
+        window.showHomeView = () => showView('home-view');
+        window.showStudioView = () => { renderStudio(); showView('studio-view'); };
+        window.showSearchView = () => showView('search-view');
+
+        window.openStoryIndex = function(id) {
+            currentStory = fanfics.find(f => f.id === id); if (!currentStory) return;
+            document.getElementById('index-story-cover').src = currentStory.cover;
+            document.getElementById('index-story-title').innerText = currentStory.title;
+            document.getElementById('index-story-author').innerText = `Por ${currentStory.author || 'Escritor Inkfy'}`;
+            document.getElementById('index-story-synopsis').innerText = currentStory.synopsis;
+            document.getElementById('index-story-reads').innerHTML = `<i class="ph ph-eye"></i> ${currentStory.reads.toLocaleString()}`;
+            document.getElementById('index-story-likes').innerHTML = `<i class="ph ph-heart"></i> ${currentStory.likes.toLocaleString()}`;
+            const visibleChapters = currentStory.chapters.filter(ch => !ch.isDraft);
+            document.getElementById('index-story-chapters').innerHTML = `<i class="ph ph-book-open"></i> ${visibleChapters.length}`;
+            const list = document.getElementById('index-chapters-list');
+            list.innerHTML = visibleChapters.length ? visibleChapters.map((ch, idx) => `
+                <div onclick="openChapter(${idx})" class="glass-ui p-6 rounded-2xl flex justify-between items-center border border-slate-800 hover:border-indigo-500 cursor-pointer transition-all group">
+                    <div class="flex items-center gap-5"><span class="text-indigo-400 font-black text-xl w-6 text-center">${idx + 1}</span><h4 class="font-bold title-contrast group-hover:text-indigo-400">${ch.title}</h4></div>
+                    <div class="flex gap-4 text-[10px] font-black uppercase text-slate-500"><span><i class="ph ph-heart"></i> ${ch.likes || 0}</span><span><i class="ph ph-chat-circle"></i> ${(ch.comments || []).length}</span></div>
+                </div>`).join('') : '<p class="text-center py-20 text-slate-500 font-bold uppercase italic">Em breve...</p>';
+            showView('story-index-view');
+        };
+
+        window.openChapter = function(idx) {
+            const visibleChapters = currentStory.chapters.filter(ch => !ch.isDraft);
+            currentChapterIndex = idx; currentStory.reads++; renderReader(visibleChapters); showView('reader-view'); saveToStorage();
+        };
+
+        window.renderReader = function(visibleChapters) {
+            const ch = visibleChapters[currentChapterIndex], container = document.getElementById('reader-container');
+            const userVotes = JSON.parse(localStorage.getItem('inkfy_voted_chapters') || '[]');
+            const hasVoted = userVotes.includes(`ch_${ch.id}`);
+            container.innerHTML = `
+                <div class="glass-ui rounded-[3rem] p-10 md:p-20 max-w-4xl mx-auto shadow-2xl border border-slate-800 mb-10">
+                    <h2 class="text-4xl md:text-5xl font-black mb-10 font-lora text-center title-contrast">${ch.title}</h2>
+                    <div class="prose prose-lg prose-invert max-w-none font-lora leading-relaxed text-slate-200 mb-16">${ch.content}</div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center pt-10 border-t border-slate-800 gap-6">
+                        <div class="flex gap-8"><button onclick="voteChapter(${ch.id})" class="flex items-center gap-2 ${hasVoted ? 'text-red-500' : 'text-slate-400'} font-black uppercase text-xs hover:scale-110 transition"><i class="${hasVoted ? 'ph-fill' : 'ph-bold'} ph-heart text-3xl"></i> Votar (${ch.likes || 0})</button><button onclick="openCommentModal()" class="flex items-center gap-2 text-indigo-400 font-black uppercase text-xs hover:scale-110 transition"><i class="ph-bold ph-chat-circle text-3xl"></i> Comentar (${(ch.comments || []).length})</button></div>
+                    </div>
+                </div>
+                <div class="max-w-4xl mx-auto glass-ui rounded-3xl p-8 mb-20 border border-slate-800">
+                    <h3 class="text-xl font-black mb-8 uppercase tracking-widest title-contrast">Eco da Comunidade (${(ch.comments || []).length})</h3>
+                    <div class="space-y-6">${(ch.comments || []).length ? ch.comments.map((c, cIdx) => `<div class="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 relative group">${c.user === "Tu" ? `<button onclick="deleteComment(${cIdx})" class="absolute top-4 right-4 text-slate-500 hover:text-red-500 opacity-0 group-hover:opacity-100 p-2"><i class="ph ph-trash"></i></button>` : ''}<p class="text-[10px] font-black uppercase text-indigo-400 mb-2">${c.user || 'Leitor'}</p><p class="text-slate-200 text-sm">${c.text}</p></div>`).join('') : '<p class="text-slate-600 text-center py-6 italic">Sê o primeiro a comentar.</p>'}</div>
+                </div>
+                <div class="max-w-4xl mx-auto flex justify-between mb-20"><button onclick="navigateChapter(-1)" ${currentChapterIndex === 0 ? 'disabled' : ''} class="px-10 py-4 bg-slate-800 rounded-full font-black uppercase text-[10px] disabled:opacity-30">Anterior</button><button onclick="navigateChapter(1)" ${currentChapterIndex === visibleChapters.length - 1 ? 'disabled' : ''} class="px-10 py-4 bg-indigo-600 text-white rounded-full font-black uppercase text-[10px] shadow-md">Próximo</button></div>`;
+        };
+
+        window.deleteComment = function(cIdx) {
+            const vChapters = currentStory.chapters.filter(ch => !ch.isDraft);
+            openConfirmModal("Apagar Comentário", "Desejas apagar este eco?", () => { const ch = vChapters[currentChapterIndex]; ch.comments.splice(cIdx, 1); saveToStorage(); renderReader(vChapters); });
+        };
+
+        window.voteChapter = function(chapterId) {
+            const vChapters = currentStory.chapters.filter(ch => !ch.isDraft); const ch = currentStory.chapters.find(c => c.id === chapterId); if(!ch) return;
+            let userVotes = JSON.parse(localStorage.getItem('inkfy_voted_chapters') || '[]'); const voteKey = `ch_${chapterId}`;
+            if(userVotes.includes(voteKey)) { ch.likes = Math.max(0, (ch.likes || 0) - 1); currentStory.likes = Math.max(0, currentStory.likes - 1); userVotes = userVotes.filter(v => v !== voteKey); }
+            else { ch.likes = (ch.likes || 0) + 1; currentStory.likes++; userVotes.push(voteKey); }
+            localStorage.setItem('inkfy_voted_chapters', JSON.stringify(userVotes)); saveToStorage(); renderReader(vChapters);
+        };
+
+        window.navigateChapter = (dir) => { const vChapters = currentStory.chapters.filter(ch => !ch.isDraft); currentChapterIndex += dir; renderReader(vChapters); window.scrollTo(0,0); };
+        window.openCommentModal = () => document.getElementById('comment-modal').classList.remove('hidden');
+        window.closeCommentModal = () => document.getElementById('comment-modal').classList.add('hidden');
+        window.submitComment = function() {
+            const text = document.getElementById('comment-input-area').value.trim(); if(!text) return;
+            const vChapters = currentStory.chapters.filter(ch => !ch.isDraft); const ch = vChapters[currentChapterIndex];
+            if(!ch.comments) ch.comments = []; ch.comments.unshift({ user: "Tu", text: text });
+            document.getElementById('comment-input-area').value = ''; closeCommentModal(); renderReader(vChapters); saveToStorage();
+        };
+
+        window.renderStudio = function() {
+            const list = document.getElementById('my-stories-list'); if(!list) return;
+            list.innerHTML = fanfics.map(s => `
+                <div class="flex flex-col glass-ui p-4 rounded-2xl border border-slate-800 group relative">
+                    <button onclick="deleteStory(${s.id})" class="absolute top-2 right-2 bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all z-10"><i class="ph ph-trash"></i></button>
+                    <div class="aspect-[2/3] bg-slate-800 rounded-xl overflow-hidden shadow-inner"><img src="${s.cover}" class="w-full h-full object-cover"></div>
+                    <h4 class="font-bold text-sm mt-4 truncate title-contrast">${s.title}</h4>
+                    <button onclick="showEditorView(${s.id})" class="mt-4 w-full py-2.5 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition">Gerenciar</button>
+                </div>`).join('');
+        };
+
+        window.deleteStory = function(id) {
+            openConfirmModal("Apagar Universo", "Tens a certeza? Esta ação é irreversível.", () => { fanfics = fanfics.filter(f => f.id !== id); saveToStorage(); showStudioView(); renderStoryCards(document.getElementById('recommended-grid'), fanfics); });
+        };
+
+        window.showEditorView = function(storyId) {
+            storyBeingEdited = fanfics.find(f => f.id === storyId);
+            if (storyBeingEdited) { 
+                renderEditor(storyBeingEdited); 
+                document.getElementById('edit-story-views').innerHTML = `<i class="ph ph-eye"></i> ${storyBeingEdited.reads.toLocaleString()}`;
+                document.getElementById('edit-story-likes').innerHTML = `<i class="ph ph-heart"></i> ${storyBeingEdited.likes.toLocaleString()}`;
+                const totalComments = storyBeingEdited.chapters.reduce((sum, ch) => sum + (ch.comments ? ch.comments.length : 0), 0);
+                document.getElementById('edit-story-comments-stat').innerHTML = `<i class="ph ph-chat-circle"></i> ${totalComments}`;
+                showView('editor-view'); 
+            }
+        };
+
+        // --- LOGICA DE ARRASTAR E SOLTAR (DRAG & DROP) ---
+        window.handleDragStart = function(e, index) {
+            dragSourceIndex = index;
+            e.currentTarget.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        };
+
+        window.handleDragOver = function(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        };
+
+        window.handleDragLeave = function(e) {
+            e.currentTarget.classList.remove('drag-over');
+        };
+
+        window.handleDrop = function(e, targetIndex) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            
+            if (dragSourceIndex !== null && dragSourceIndex !== targetIndex) {
+                const chapters = storyBeingEdited.chapters;
+                const movedItem = chapters.splice(dragSourceIndex, 1)[0];
+                chapters.splice(targetIndex, 0, movedItem);
+                
+                saveToStorage();
+                renderEditor(storyBeingEdited);
+            }
+        };
+
+        window.handleDragEnd = function(e) {
+            e.currentTarget.classList.remove('dragging');
+            dragSourceIndex = null;
+        };
+
+        window.renderEditor = function(story) {
+            document.getElementById('edit-cover-preview').src = story.cover;
+            document.getElementById('edit-story-title').textContent = story.title;
+            const list = document.getElementById('chapters-list-editor');
+            list.innerHTML = story.chapters.map((ch, idx) => `
+                <li class="p-5 bg-slate-800/40 rounded-2xl flex items-center justify-between border ${ch.isDraft ? 'border-dashed border-slate-600' : 'border-slate-800'} transition-all hover:bg-slate-800/60"
+                    draggable="true" 
+                    ondragstart="handleDragStart(event, ${idx})"
+                    ondragover="handleDragOver(event)"
+                    ondragleave="handleDragLeave(event)"
+                    ondrop="handleDrop(event, ${idx})"
+                    ondragend="handleDragEnd(event)">
+                    <div class="flex items-center gap-4">
+                        <i class="ph-bold ph-dots-six-vertical text-slate-600 cursor-grab active:cursor-grabbing text-xl" title="Arraste para reordenar"></i>
+                        <div>
+                            <span class="text-sm font-bold title-contrast">${idx + 1}. ${ch.title}</span>
+                            ${ch.isDraft ? '<span class="ml-3 text-[8px] bg-slate-700 text-slate-400 px-3 py-1 rounded-full font-black uppercase">Rascunho</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="openChapterWriting(${idx})" class="p-3 bg-slate-800 rounded-xl text-indigo-300 border border-slate-700 hover:scale-110 transition"><i class="ph-fill ph-pencil-simple"></i></button>
+                        <button onclick="deleteChapter(${idx})" class="p-3 bg-slate-800 rounded-xl text-red-400 border border-slate-700 hover:scale-110 transition"><i class="ph-fill ph-trash"></i></button>
+                    </div>
+                </li>`).join('');
+        };
+
+        window.deleteChapter = function(idx) { openConfirmModal("Eliminar Capítulo", "Apagar permanentemente este capítulo?", () => { storyBeingEdited.chapters.splice(idx, 1); renderEditor(storyBeingEdited); saveToStorage(); }); };
+
+        window.showStoryDetailsView = function(storyId = null) { 
+            populateCategoryDropdown(); const editingIdField = document.getElementById('editing-story-id');
+            if (storyId) {
+                const fic = fanfics.find(f => f.id === storyId); editingIdField.value = storyId;
+                document.getElementById('new-story-title').value = fic.title; document.getElementById('new-story-synopsis').value = fic.synopsis; document.getElementById('new-story-chars').value = (fic.mainCharacters || []).join(', '); document.getElementById('new-story-category').value = fic.category; document.getElementById('cover-preview-img').src = fic.cover; document.getElementById('cover-preview-img').classList.remove('hidden'); document.getElementById('cover-placeholder').classList.add('hidden'); document.getElementById('story-details-title').innerText = "Editar História";
+            } else {
+                editingIdField.value = ''; document.getElementById('new-story-title').value = ''; document.getElementById('new-story-synopsis').value = ''; document.getElementById('new-story-chars').value = ''; document.getElementById('cover-preview-img').classList.add('hidden'); document.getElementById('cover-placeholder').classList.remove('hidden'); document.getElementById('story-details-title').innerText = "Nova História";
+            }
+            showView('story-details-view'); 
+        };
+
+        window.openChapterWriting = function(idx = null) {
+            chapterIndexBeingWritten = idx; const ed = document.getElementById('writing-content-editor');
+            if (idx !== null) { const ch = storyBeingEdited.chapters[idx]; document.getElementById('writing-chapter-title').value = ch.title; document.getElementById('writing-chapter-status').value = ch.isDraft ? 'draft' : 'published'; ed.innerHTML = ch.content; }
+            else { document.getElementById('writing-chapter-title').value = ''; document.getElementById('writing-chapter-status').value = 'published'; ed.innerHTML = '<div><br></div>'; }
+            showView('chapter-writing-view');
+        };
+
+        window.cancelWriting = () => openConfirmModal("Sair sem salvar", "Deseja descartar as alterações?", () => showEditorView(storyBeingEdited.id));
+        window.execCommand = (cmd) => document.execCommand(cmd, false, null);
+        window.execCommandWithVal = (cmd, val) => document.execCommand(cmd, false, val);
+        window.openConfirmModal = function(title, msg, onConfirm) { document.getElementById('confirm-title').innerText = title; document.getElementById('confirm-message').innerText = msg; const btn = document.getElementById('confirm-action-btn'); btn.onclick = () => { onConfirm(); closeConfirmModal(); }; document.getElementById('confirm-modal').classList.remove('hidden'); };
+        window.closeConfirmModal = () => document.getElementById('confirm-modal').classList.add('hidden');
+        window.populateCategoryDropdown = () => { const s = document.getElementById('new-story-category'); s.innerHTML = '<option value="">Estilo...</option>' + discoverTags.map(t => `<option value="${t}">${t}</option>`).join(''); };
+        window.editCurrentStoryDetails = () => { if (storyBeingEdited) showStoryDetailsView(storyBeingEdited.id); };
+        function saveToStorage() { localStorage.setItem('inkfy_stories', JSON.stringify(fanfics)); }
+
+        window.renderStoryCards = function(container, stories) {
+            if(!container) return;
+            container.innerHTML = stories.map(story => `
+                <div class="cursor-pointer group flex flex-col" onclick="openStoryIndex(${story.id})">
+                    <div class="relative overflow-hidden rounded-xl shadow-md aspect-[2/3] bg-slate-800 border border-slate-800"><img src="${story.cover}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"><div class="absolute top-2 right-2 bg-black/60 px-2 py-1 rounded-full text-[9px] font-black"><i class="ph-fill ph-heart text-red-500"></i> ${story.likes.toLocaleString()}</div></div>
+                    <h3 class="font-bold text-sm mt-3 line-clamp-1 title-contrast group-hover:text-indigo-400">${story.title}</h3>
+                    <div class="flex justify-between items-center mt-1"><p class="text-[9px] uppercase font-black text-slate-500">${story.category || 'Geral'}</p><p class="text-[9px] font-bold text-slate-600 flex items-center gap-1"><i class="ph ph-eye"></i> ${story.reads}</p></div>
+                </div>`).join('');
+        };
+
+window.updateWritingStats = function() {
+            const ed = document.getElementById('writing-content-editor');
+            const words = (ed.innerText || "").trim().split(/\s+/).filter(Boolean).length;
+            const wElement = document.getElementById('writing-word-count');
+            const pElement = document.getElementById('writing-page-count');
+            if(wElement) wElement.innerText = words.toLocaleString();
+            if(pElement) pElement.innerText = Math.ceil(words / 250);
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateCelestialBackground(); populateCategoryDropdown();
+            renderStoryCards(document.getElementById('recommended-grid'), fanfics);
+            renderStoryCards(document.getElementById('best-choices-grid'), fanfics);
+            document.getElementById('logo').onclick = showHomeView;
+            document.getElementById('studio-button').onclick = (e) => { e.stopPropagation(); document.getElementById('studio-dropdown').classList.toggle('hidden'); };
+            window.onclick = () => { document.getElementById('studio-dropdown')?.classList.add('hidden'); };
+            document.getElementById('cover-upload-zone').onclick = () => document.getElementById('cover-input').click();
+            document.getElementById('cover-input').onchange = (e) => {
+                const r = new FileReader(); r.onload = (re) => { const img = document.getElementById('cover-preview-img'); img.src = re.target.result; img.classList.remove('hidden'); document.getElementById('cover-placeholder').classList.add('hidden'); };
+                if(e.target.files[0]) r.readAsDataURL(e.target.files[0]);
+            };
+            document.getElementById('save-new-story-btn').onclick = () => {
+                const t = document.getElementById('new-story-title').value, eid = document.getElementById('editing-story-id').value;
+                if (!t) return alert("Título obrigatório!");
+                const d = { title: t, synopsis: document.getElementById('new-story-synopsis').value, cover: document.getElementById('cover-preview-img').src, author: "Tu", category: document.getElementById('new-story-category').value, mainCharacters: document.getElementById('new-story-chars').value.split(',') };
+                if (eid) { const idx = fanfics.findIndex(f => f.id == eid); fanfics[idx] = { ...fanfics[idx], ...d }; showEditorView(parseInt(eid)); }
+                else { fanfics.push({ id: Date.now(), ...d, likes: 0, reads: 0, comments: [], chapters: [] }); showStudioView(); }
+                saveToStorage(); renderStoryCards(document.getElementById('recommended-grid'), fanfics);
+            };
+            document.getElementById('save-chapter-btn').onclick = () => {
+                const t = document.getElementById('writing-chapter-title').value || "Sem Título", c = document.getElementById('writing-content-editor').innerHTML, isD = document.getElementById('writing-chapter-status').value === 'draft';
+                if (chapterIndexBeingWritten !== null) { storyBeingEdited.chapters[chapterIndexBeingWritten] = { ...storyBeingEdited.chapters[chapterIndexBeingWritten], title: t, content: c, isDraft: isD }; }
+                else { storyBeingEdited.chapters.push({ id: Date.now(), title: t, content: c, isDraft: isD, likes: 0, comments: [] }); }
+                saveToStorage(); showEditorView(storyBeingEdited.id);
+            };
+            document.getElementById('writing-content-editor').addEventListener('input', () => {
+                const words = (document.getElementById('writing-content-editor').innerText || "").trim().split(/\s+/).filter(Boolean).length;
+                document.getElementById('writing-word-count').innerText = words.toLocaleString();
+                document.getElementById('writing-page-count').innerText = Math.ceil(words / 250);
+            });
+        });
+    </script>
+</body>
+</html>
